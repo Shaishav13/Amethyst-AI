@@ -1,0 +1,233 @@
+AMETHYST DEVELOPMENT LOG (RECENT FIXES & FEATURES)
+======================================================================
+This file tracks all major issues resolved and features implemented by the AI Assistant (Antigravity) since the last update to amethyst_issues.txt.
+
+----------------------------------------------------------------------
+ISSUE 11: Broken Math Formatting (Raw LaTeX in UI)        [STATUS: FIXED]
+----------------------------------------------------------------------
+Files involved:
+  - ai_engine.py
+  - amethyst-ui/src/app/components/message-bubble/message-bubble.ts
+
+THE PROBLEM:
+  Models fine-tuned on code and math (like qwen2.5-coder) stubbornly output
+  equations using raw LaTeX syntax (e.g., \frac{25}{0.1}, \[ \], \( \)). 
+  Because the Angular frontend uses a standard Markdown parser without a math 
+  renderer (like Katex), the UI was displaying ugly, unreadable bracket soup.
+
+WHAT WAS DONE:
+  1. Backend Prompt Fix: Updated `BASE_SYSTEM_PROMPT` in `ai_engine.py` to 
+     strictly forbid \frac, \text, and LaTeX blocks, demanding plain ASCII math.
+  2. Frontend Interceptor: (The true fix) Added a regex pre-processor to 
+     `message-bubble.ts` inside `ngOnChanges`. It intercepts incoming chat strings, 
+     strips out \[ and \], and converts \frac{A}{B} into A / B before rendering.
+
+
+----------------------------------------------------------------------
+FEATURE 1: Agentic Live Web Search (Offline-Safe)         [STATUS: FIXED]
+----------------------------------------------------------------------
+Files involved:
+  - search_engine.py (NEW)
+  - ai_engine.py
+  - api_server.py
+
+THE PROBLEM:
+  Amethyst's knowledge cut off at its training date. We needed a way for it to 
+  check live news and weather without breaking its offline-first architecture. 
+  Initial attempts using third-party packages (duckduckgo-search) failed due to 
+  broken APIs and package version conflicts.
+
+WHAT WAS DONE:
+  1. Built a custom scraper (`search_engine.py`) using `requests` and `bs4` 
+     that directly queries the DuckDuckGo static HTML endpoint. It bypasses rate 
+     limits and extracts real URLs automatically.
+  2. Updated `ModelRouter` in `ai_engine.py` to detect search intents (e.g., 
+     "latest news", "search for", "today") and flag `requires_search = True`.
+  3. Modified `api_server.py` to perform a background ping to `1.1.1.1` to check 
+     for internet connectivity. If online, it scrapes the web and injects the 
+     live text into the LLM context invisibly.
+
+
+----------------------------------------------------------------------
+ISSUE 12: RAG Ingestion Freezing UI on Large Books        [STATUS: FIXED]
+----------------------------------------------------------------------
+Files involved:
+  - api_server.py
+  - rag_engine.py
+
+THE PROBLEM:
+  Uploading large PDFs (like the 160+ page Anarchist Cookbook) completely froze 
+  the Python backend. Ollama embeds chunks sequentially, taking over 30 minutes 
+  for large books. Because the ingestion ran synchronously inside the FastAPI 
+  `/upload` endpoint, the entire UI and API loop was locked up.
+
+WHAT WAS DONE:
+  1. In `api_server.py`, wrapped `rag.ingest_document(tmp_path)` in an 
+     `asyncio.to_thread()` call to offload the blocking CPU work.
+  2. In `rag_engine.py`, added a hard safety limit (`MAX_CHUNKS = 400`). Large 
+     books are now automatically capped to the first ~50 dense pages, ensuring 
+     ingestion completes in a few minutes instead of locking the machine.
+
+
+----------------------------------------------------------------------
+ISSUE 13: Terminal Spam (LangChain Deprecation)           [STATUS: FIXED]
+----------------------------------------------------------------------
+Files involved:
+  - rag_engine.py
+
+THE PROBLEM:
+  LangChain constantly updates its class names, resulting in massive blocks of 
+  orange Deprecation Warnings polluting the startup terminal logs every time 
+  OllamaEmbeddings or Chroma DB was initialized.
+
+WHAT WAS DONE:
+  Imported Python's `warnings` module in `rag_engine.py` and used 
+  `filterwarnings("ignore", module="langchain")` to permanently silence all 
+  harmless deprecation notifications from that specific library.
+
+
+----------------------------------------------------------------------
+ISSUE 14: Context Flooding & AI Regurgitating Resume      [STATUS: FIXED]
+----------------------------------------------------------------------
+Files involved:
+  - rag_engine.py
+  - ai_engine.py
+
+THE PROBLEM:
+  When the user sent extremely short messages like "?", the RAG engine mathematically 
+  queried the Chroma database anyway, pulling 12 random chunks (about 3,000 words) 
+  from the most recently uploaded document (the user's Resume/Project profile) and 
+  injecting it into the prompt. The AI ignored the "?" and just blindly summarized 
+  the injected text.
+
+WHAT WAS DONE:
+  1. Short-Circuit: Updated `rag_engine.py` `query()` to return an empty string if 
+     the user's prompt is less than 5 characters.
+  2. Chunk Reduction: Reduced default retrieval size `k` from 12 down to 5 to 
+     prevent AI memory flooding.
+  3. System Prompt Directive: Added a "CONTEXT AWARENESS" section to `ai_engine.py`. 
+     It now explicitly commands the AI to treat injected context as passive and 
+     forbids summarizing it unless the user explicitly asks a related question.
+
+
+======================================================================
+AUDIT & DEEP FIXES (by Antigravity/Claude)
+======================================================================
+The following 12 issues were found during a code audit of the above changes.
+All have been properly fixed.
+
+----------------------------------------------------------------------
+FIX 1: is_connected() Crash on Non-ConnectionError        [FIXED]
+----------------------------------------------------------------------
+File: search_engine.py
+Problem: Only caught `requests.ConnectionError`. DNS failures, SSL errors,
+  timeouts, and firewall blocks all threw uncaught exceptions that crashed
+  the entire chat endpoint.
+Fix: Changed to `except Exception` — now returns False for ANY failure.
+  Also switched from GET to HEAD request (faster, less data).
+
+----------------------------------------------------------------------
+FIX 2: Router Called Twice Per Request                     [FIXED]
+----------------------------------------------------------------------
+Files: api_server.py, ai_engine.py
+Problem: api_server.py called `engine.router.route()` to check for search
+  intent, then `engine.stream_response()` called it AGAIN internally.
+Fix: Added `pre_routed` parameter to `stream_response()`. api_server.py
+  now routes once and passes the decision through. No double-routing.
+
+----------------------------------------------------------------------
+FIX 3: "today" False-Positive Search Trigger               [FIXED]
+----------------------------------------------------------------------
+File: ai_engine.py
+Problem: "today" as a search keyword triggered on casual messages like
+  "today I learned about Python", wasting 10 seconds scraping DDG.
+Fix: Removed "today", "look up", "who won", "live data". All keywords
+  are now multi-word phrases ("search the web", "latest news", etc.).
+
+----------------------------------------------------------------------
+FIX 4: No Search Rate Limiting                             [FIXED]
+----------------------------------------------------------------------
+File: search_engine.py
+Problem: Every search fired 3+ concurrent HTTP requests with no throttle.
+  Fast chatting would get the user IP-banned by DDG or target sites.
+Fix: Added 3-second minimum interval between searches. Uses persistent
+  `requests.Session` for connection reuse. Singleton in api_server.py.
+
+----------------------------------------------------------------------
+FIX 5: Nested LaTeX Broke Regex                            [FIXED]
+----------------------------------------------------------------------
+File: message-bubble.ts
+Problem: `[^}]+` regex couldn't handle nested braces like
+  `\frac{\sqrt{x}}{y}` — the inner `{x}` closed the capture early.
+Fix: Rewrote with nested-brace-aware regex:
+  `\{(?:[^{}]|\{[^{}]*\})*\}` which correctly matches one level of nesting.
+
+----------------------------------------------------------------------
+FIX 6: Missing LaTeX Commands Not Handled                  [FIXED]
+----------------------------------------------------------------------
+File: message-bubble.ts
+Problem: Only \frac and \text were handled. \sqrt, \times, \leq, \pi,
+  \sum, \int, etc. all showed as raw backslash garbage.
+Fix: Added 17 common LaTeX symbol replacements with proper Unicode
+  equivalents (× · ÷ ± ≤ ≥ ≠ ≈ ∞ π α β Σ ∫ ⟹ → ←).
+
+----------------------------------------------------------------------
+FIX 7: RAG 5-Character Minimum Was Arbitrary               [FIXED]
+----------------------------------------------------------------------
+File: rag_engine.py
+Problem: `len(prompt) < 5` blocked "hi" but allowed "hello" (5 chars),
+  "what?" (5 chars), and "ok ok" (5 chars) — all equally useless queries.
+Fix: Replaced with a regex-based casual chat detector that matches
+  common filler words (hi, hey, ok, yes, no, lol, bruh, etc.) regardless
+  of length. Also kept an 8-char minimum as a safety net.
+
+----------------------------------------------------------------------
+FIX 8: RAG Had No Relevance Threshold                      [FIXED]
+----------------------------------------------------------------------
+File: rag_engine.py
+Problem: RAG injected chunks on EVERY message regardless of topic.
+  A chemistry textbook chunk would be injected into a pizza question.
+Fix: Switched from `similarity_search()` to `similarity_search_with_score()`.
+  Chroma returns L2 distance (lower = better). Chunks with score > 1.5
+  (noise) are now silently dropped. Only genuinely relevant context is injected.
+
+----------------------------------------------------------------------
+FIX 9: k=5 Ate Half the Context Window                     [FIXED]
+----------------------------------------------------------------------
+File: rag_engine.py
+Problem: 5 chunks × 700 chars = 3,500 chars of injected context, consuming
+  over half the model's context window on smaller configs (num_ctx=2048).
+Fix: Reduced default k from 5 to 4. Combined with the relevance threshold
+  (Fix 8), most queries will inject 1-3 chunks max — only the truly relevant ones.
+
+----------------------------------------------------------------------
+FIX 10: Chunk Cap Gave No User Feedback                    [FIXED]
+----------------------------------------------------------------------
+File: rag_engine.py
+Problem: MAX_CHUNKS=400 silently truncated large books. User had no idea
+  pages 51+ were dropped. Asking about Chapter 12 got a false "not found".
+Fix: Truncation metadata (`truncated: true`, `original_chunk_count: N`)
+  is now stored on every chunk. Log message now reports the original vs.
+  capped count. Future UI can display a warning badge.
+
+----------------------------------------------------------------------
+FIX 11: Deprecated Imports Hidden, Not Fixed                [FIXED]
+----------------------------------------------------------------------
+File: rag_engine.py
+Problem: `warnings.filterwarnings("ignore")` silenced deprecation warnings
+  but the code still used `langchain_community.embeddings.OllamaEmbeddings`
+  and `langchain_community.vectorstores.Chroma` — both scheduled for removal.
+Fix: Installed `langchain-ollama` and `langchain-chroma` packages. Updated
+  imports to `from langchain_ollama import OllamaEmbeddings` and
+  `from langchain_chroma import Chroma`. Removed the warning suppression hack.
+
+----------------------------------------------------------------------
+FIX 12: Upload Race Condition with Temp Files              [FIXED]
+----------------------------------------------------------------------
+File: api_server.py
+Problem: `tmp_path = os.path.join(tempdir, file.filename)` — two concurrent
+  uploads with the same filename would overwrite each other, and
+  `os.remove()` could delete a file still being ingested by another thread.
+Fix: Temp filename now includes `uuid.uuid4().hex` prefix for uniqueness.
+  Cleanup wrapped in `try/finally` so the temp file is always deleted,
+  even if ingestion throws an exception.

@@ -1,0 +1,43 @@
+.stats {
+  padding: 6px 2px 2px;
+
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+
+    .stat-label {
+      font-size: 0.68em;
+      font-weight: 700;
+      color: var(--text-dim);
+      width: 26px;
+      letter-spacing: 0.05em;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 4px;
+      background: var(--bg-hover);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+      &.battery { background: var(--success); }
+      &.warn     { background: var(--yellow); }
+      &.danger   { background: var(--error); }
+    }
+
+    .stat-val {
+      font-size: 0.7em;
+      color: var(--text-muted);
+      width: 52px;
+      text-align: right;
+    }
+  }
+}

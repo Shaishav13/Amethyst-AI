@@ -1,0 +1,101 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  height: 52px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+
+  .divider-v {
+    width: 1px;
+    height: 22px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+
+  .spacer { flex: 1; }
+
+  .session-title {
+    font-weight: 600;
+    font-size: 0.92em;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+  }
+
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    mat-icon { font-size: 20px; height: 20px; width: 20px; }
+
+    &:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+  }
+
+  .model-badges {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.73em;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    cursor: default;
+    transition: border-color 0.2s;
+
+    &.coder {
+      color: var(--cyan);
+      border-color: rgba(0,245,212,0.25);
+      &:hover { border-color: var(--cyan); }
+    }
+    &.chat {
+      color: var(--yellow);
+      border-color: rgba(254,228,64,0.25);
+      &:hover { border-color: var(--yellow); }
+    }
+    &.offline {
+      color: var(--error);
+      border-color: rgba(255,0,84,0.3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--error);
+    flex-shrink: 0;
+    transition: background 0.3s;
+    &.online {
+      background: var(--success);
+      box-shadow: 0 0 4px var(--success);
+    }
+  }
+}

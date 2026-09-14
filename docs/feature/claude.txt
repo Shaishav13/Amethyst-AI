@@ -1,0 +1,33 @@
+The user wants me to do a comprehensive audit of the entire Amethyst project to find all current issues that make it "dumb" compared to a more intelligent AI, fix them, and report progress in claude.txt. Let me be efficient — read the key files, identify issues, fix them, and document.
+
+Let me focus on what makes an AI "dumb":
+
+System prompt quality
+Context management
+Routing accuracy
+Memory injection quality
+Response quality issues
+Let me scan all the critical files quickly.
+
+ai_engine.py#L225-300
+ai_engine.py#L300-400
+ai_engine.py#L400-528
+memory_manager.py#L1-80
+memory_manager.py#L400-500
+memory_manager.py#L500-547
+memory_manager.py#L300-400
+memory_manager.py#L260-300
+api_server.py#L100-200
+ai_engine.py#L180-210
+Modelfile.chat#L1-9
+Modelfile.coder#L1-32
+Now I have the full picture. Let me identify and fix every issue that makes Amethyst "dumb":
+
+api_server.py#L245-300
+Now I have the full picture. Here are the issues I've found — let me fix them all:
+
+Issue 1: Modelfile.chat has num_ctx=1024 — far too small for intelligent responses Issue 2: RAG + Search context is stored in conversation history, bloating future messages
+Issue 3: ConversationHistory uses flat message count, not token budget Issue 4: System prompt doesn't teach the AI HOW to think (chain-of-thought) Issue 5: Memory summarizer picks random model instead of preferring the chat model Issue 6: No separation between user's real message and injected context in history
+
+Modelfile.chat
+ai_engine.py

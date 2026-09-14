@@ -1,0 +1,140 @@
+AMETHYST AI INFRASTRUCTURE - ISSUE TRACKER
+=============================================
+Last updated: 2026-07-08 15:01 IST
+
+This file tracks all known issues for the Amethyst AI project.
+Project location: D:\project2.0\AI_Assistant
+Any AI assistant (Claude, Gemini, etc.) can use this file to continue work.
+
+======================================================================
+PROJECT ARCHITECTURE (for context)
+======================================================================
+- start.bat          → Launches Ollama + FastAPI backend + Angular frontend
+- ai_engine.py       → Routes prompts to coder or chat model, manages history
+- api_server.py      → FastAPI server, SSE streaming to Angular UI
+- memory_manager.py  → Persistent user profile + session storage + summarization
+- amethyst-ui/       → Angular 19 frontend (localhost:4200)
+
+Models (via Ollama):
+  amethyst-coder (based on qwen2.5-coder) → for code tasks, CENSORED
+  amethyst-chat  (based on dolphin-mistral) → for general chat, UNCENSORED
+
+Key flow:
+  User types message → Angular sends POST to /api/chat/stream
+  → api_server.py calls engine.stream_response()
+  → ai_engine.py routes to coder or chat model
+  → System prompt is built by memory_manager.build_system_prompt()
+    which APPENDS user profile facts + past session summaries to the prompt
+  → Response streamed back via SSE
+
+======================================================================
+COMPLETED ISSUES:
+======================================================================
+[DONE] Issue 1: Custom models rebuilt (amethyst-coder + amethyst-chat)
+[DONE] Issue 2: UI display name fixed (checks 'coder' not 'qwen')
+[DONE] Issue 3: SSE meta event sends correct routed model
+[DONE] Issue 4: Duplicate comment removed in ai_engine.py
+[DONE] Issue 5: ModelType enum updated to amethyst-coder/amethyst-chat
+[DONE] Issue 6: Terminal banner garbled characters (added chcp 65001)
+[DONE] CUDA v13 forced in start.bat to bypass Vulkan crashes
+[DONE] OLLAMA_MAX_LOADED_MODELS=1 to prevent OOM
+
+======================================================================
+OPEN ISSUES (work on these in order):
+======================================================================
+
+ISSUE 7: Stop Button Not Fully Working                    [STATUS: NEEDS TESTING]
+----------------------------------------------------------------------
+Files changed:
+  - amethyst-ui/src/app/services/chat.ts (added AbortController)
+  - amethyst-ui/src/app/components/input-bar/input-bar.ts (calls chat.stopGeneration())
+
+What was done: Added AbortController to the fetch() call in chat.ts.
+  The stopGeneration() method now calls abort() on the controller to
+  kill the HTTP stream. AbortError is caught silently so no error shows.
+
+What to test: Start a long generation, click stop. It should:
+  1. Stop receiving new tokens immediately
+  2. Keep the partial response that was already generated
+  3. Not show any error message
+  4. Allow sending a new message afterwards
+
+----------------------------------------------------------------------
+
+ISSUE 8: Memory Context Polluting New Chats               [STATUS: PARTIALLY FIXED]
+----------------------------------------------------------------------
+Files involved:
+  - api_server.py (line ~174) — FIXED: now clears engine history and
+    reloads only the current session's messages before each request
+  - memory_manager.py (line 448, build_system_prompt method) — THIS IS
+    THE REMAINING PROBLEM
+
+THE PROBLEM:
+  memory_manager.build_system_prompt() (memory_manager.py line 448)
+  takes the BASE_SYSTEM_PROMPT and APPENDS two things to it:
+    1. User profile facts (name, job title, resume info from past chats)
+    2. Recent session summaries (summaries of the last 3 conversations)
+
+  This means EVERY new chat gets a system prompt that contains info from
+  past sessions. The model reads "Past Session 1: User discussed upgrading
+  AI models..." and thinks THAT is the current conversation.
+
+  This is why the model says things like:
+    - "We were discussing upgrading conversational AI models"
+    - "I see a resume from Shaishav, a Full-Stack Developer"
+  ...even in a brand new empty chat.
+
+THE FIX OPTIONS:
+  Option A (Simple): Don't inject session summaries into the system prompt.
+    In memory_manager.py line 460-465, comment out or remove the section
+    that appends "RECENT CONVERSATION SUMMARIES". Keep user profile facts
+    but remove session summaries. This prevents the model from confusing
+    past conversations with the current one.
+
+  Option B (Better): Only inject session summaries when the user explicitly
+    asks to "remember" or "continue" a past topic. This requires adding
+    a flag or keyword check.
+
+  Option C (Quick test): Clear the stored memory data by deleting the
+    files in ~/.amethyst/ directory. This resets the profile and summaries
+    so the system prompt is clean. But they'll accumulate again over time.
+
+----------------------------------------------------------------------
+
+ISSUE 9: Model Reveals Base Identity ("Google AI")        [STATUS: PARTIALLY FIXED]
+----------------------------------------------------------------------
+Files changed:
+  - memory_manager.py (line ~474) — Added identity reinforcement at the
+    END of build_system_prompt() output
+
+What was done: Added a REMINDER block at the very end of the system prompt:
+  "REMINDER: You are Amethyst. Never say you are GPT, Google AI,
+   Mistral, Dolphin, or any other model."
+
+Why this helps: LLMs weight tokens near the end of the context more heavily.
+  By putting the identity reminder AFTER all the memory context, the model
+  is more likely to follow it.
+
+Why it might not be enough: If the memory context is very long (lots of
+  past session summaries), the total system prompt may exceed the model's
+  effective attention window, especially with num_ctx=1024 for the chat model.
+
+Additional fix if still broken:
+  1. Increase NUM_CTX_CHAT from 1024 to 2048 in ai_engine.py line 35
+     (costs more VRAM but gives the model more room to process the prompt)
+  2. Fix Issue 8 fully (remove session summaries from system prompt)
+     which reduces prompt length and makes the identity rules more prominent
+
+----------------------------------------------------------------------
+
+ISSUE 10: Server Restart Required                         [STATUS: ACTION NEEDED]
+----------------------------------------------------------------------
+The fixes for Issues 8 and 9 are in the code but the server has NOT been
+restarted yet. The running instance is still using old code.
+
+To apply: Close the terminal running start.bat, then run ./start.bat again.
+After restart, test by:
+  1. Open a new chat
+  2. Ask "what is your name?"
+  3. It should say "Amethyst" without mentioning Google/GPT/Mistral
+  4. It should NOT reference any past conversations or resumes

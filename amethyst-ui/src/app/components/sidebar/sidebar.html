@@ -1,0 +1,115 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+
+  <!-- Logo -->
+  <div class="logo">
+    <span class="logo-glyph">✦</span>
+    @if (!collapsed) {
+      <div class="logo-text">
+        <span class="logo-name">AMETHYST</span>
+        <span class="logo-sub">Local AI</span>
+      </div>
+    }
+  </div>
+
+  <mat-divider />
+
+  <!-- New Chat button -->
+  <button class="new-chat-btn" (click)="newChat()" [matTooltip]="collapsed ? 'New Chat' : ''" matTooltipPosition="right">
+    <mat-icon>add</mat-icon>
+    @if (!collapsed) { <span>New Chat</span> }
+  </button>
+
+  @if (!collapsed) {
+    <!-- Model status -->
+    <div class="model-status">
+      <span class="section-label">MODELS</span>
+      <div class="model-row">
+        <span class="dot cyan"></span>
+        <span class="model-name">{{ chat.coderModel() || 'coder' }}</span>
+      </div>
+      <div class="model-row">
+        <span class="dot yellow"></span>
+        <span class="model-name">{{ chat.chatModel() || 'chat' }}</span>
+      </div>
+    </div>
+
+    <mat-divider />
+
+    <!-- Active sessions -->
+    @if (chat.sessions().length > 0) {
+      <span class="section-label">ACTIVE</span>
+      <div class="session-list">
+        @for (s of chat.sessions(); track s.id) {
+          <div class="session-item" [class.active]="isActive(s.id)" (click)="chat.activeId.set(s.id)">
+            <mat-icon class="s-icon">chat_bubble_outline</mat-icon>
+            <span class="s-title">{{ s.title }}</span>
+            <button class="del-btn" (click)="chat.deleteSession(s.id); $event.stopPropagation()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+      <mat-divider />
+    }
+
+    <!-- History -->
+    @if (storedSessions().length > 0) {
+      <button class="section-toggle" (click)="historyExpanded.set(!historyExpanded())">
+        <span class="section-label" style="margin:0">HISTORY</span>
+        <mat-icon class="toggle-icon" [class.expanded]="historyExpanded()">expand_more</mat-icon>
+      </button>
+
+      @if (historyExpanded()) {
+        <div class="session-list scrollable">
+          @for (s of storedSessions(); track s.id) {
+            <div class="session-item" [class.active]="isActive(s.id)" (click)="openSession(s)">
+              <mat-icon class="s-icon">history</mat-icon>
+              <div class="s-info">
+                <span class="s-title">{{ s.title }}</span>
+                <span class="s-meta">{{ s.message_count }} msgs · {{ formatDate(s.updated) }}</span>
+              </div>
+              <button class="del-btn" (click)="deleteSession(s, $event)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Memory -->
+    @if (hasMemory()) {
+      <mat-divider />
+      <button class="section-toggle" (click)="memoryExpanded.set(!memoryExpanded())">
+        <span class="section-label accent" style="margin:0">MEMORY</span>
+        <mat-icon class="toggle-icon" [class.expanded]="memoryExpanded()">expand_more</mat-icon>
+      </button>
+
+      @if (memoryExpanded()) {
+        <div class="memory-panel">
+          @for (f of profile().facts?.slice(-5); track $index) {
+            <div class="mem-item"><span class="mem-tag fact">F</span><span>{{ f }}</span></div>
+          }
+          @for (p of profile().preferences?.slice(-3); track $index) {
+            <div class="mem-item"><span class="mem-tag pref">★</span><span>{{ p }}</span></div>
+          }
+          @for (p of profile().projects?.slice(-2); track $index) {
+            <div class="mem-item"><span class="mem-tag proj">P</span><span>{{ p }}</span></div>
+          }
+        </div>
+      }
+    }
+  }
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    @if (!collapsed) {
+      <app-system-stats />
+      <button class="clear-btn" (click)="clearAll()">
+        <mat-icon>delete_outline</mat-icon>
+        Clear All
+      </button>
+    }
+  </div>
+
+</aside>

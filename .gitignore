@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments & Dependencies
+venv/
+.venv/
+env/
+.env/
+node_modules/
+
+# Amethyst runtime data (personal data, large files, generated content)
+# These live in ~/.amethyst/ and should never be committed
+*.amethyst/
+chroma_db/
+sessions/
+memories/
+screenshots/
+sandbox/
+profile.json
+*.draft
+
+# Environment / secrets
+.env
+*.env
+secrets.json
+config.local.*
+
+# IDE / editor
+.vscode/
+.idea/
+*.suo
+*.user
+*.sublime-project
+*.sublime-workspace
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+ehthumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/

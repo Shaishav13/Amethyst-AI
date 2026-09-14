@@ -1,0 +1,183 @@
+@use '@angular/material' as mat;
+
+// ── Material Icons font (local) ───────────────────────────────────────────────
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/material-icons.woff2') format('woff2'),
+       url('/material-icons.woff') format('woff');
+}
+
+// ── Include all Material component styles with default theme ──────────────────
+@include mat.core();
+
+html {
+  // Apply a dark purple-based Material theme
+  color-scheme: dark;
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$violet-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Roboto,
+    density: -1,
+  ));
+}
+
+// ── CSS Variables ─────────────────────────────────────────────────────────────
+:root {
+  --bg-deep:       #030305;
+  --bg-panel:      #0a0a0f;
+  --bg-card:       #111218;
+  --bg-input:      #0e0e14;
+  --bg-hover:      #1d1e28;
+  --accent:        #9d4edd;
+  --accent-dim:    #7b2cbf;
+  --accent-glow:   #e0aaff;
+  --cyan:          #00f5d4;
+  --yellow:        #fee440;
+  --pink:          #f15bb5;
+  --text-primary:  #ffffff;
+  --text-muted:    #8a8a9e;
+  --text-dim:      #4a4a5c;
+  --border:        #1e1e2c;
+  --error:         #ff0054;
+  --success:       #00f5d4;
+  --code-bg:       #0d0d0d;
+  --sidebar-width: 260px;
+}
+
+// ── Material Icons — force correct font on all mat-icon elements ──────────────
+mat-icon, .mat-icon {
+  font-family: 'Material Icons' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+}
+
+// ── Material Icons fallback ───────────────────────────────────────────────────
+.material-icons {
+  font-family: 'Material Icons', 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Global Reset ──────────────────────────────────────────────────────────────
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+// ── Scrollbar Styling ─────────────────────────────────────────────────────────
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--bg-panel); }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+
+// ── Markdown content inside chat ─────────────────────────────────────────────
+.md-content {
+  line-height: 1.7;
+  word-break: break-word;
+
+  p   { margin: 0.5em 0; }
+  ul, ol { padding-left: 1.4em; margin: 0.4em 0; }
+  li  { margin: 0.2em 0; }
+  h1,h2,h3 { margin: 0.8em 0 0.3em; color: var(--accent-glow); }
+  a   { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code:not([class]) {
+    background: var(--code-bg);
+    color: var(--cyan);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.88em;
+  }
+
+  pre {
+    margin: 0.8em 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      padding: 6px 12px;
+      font-size: 0.78em;
+      color: var(--text-muted);
+      font-family: 'Segoe UI', sans-serif;
+
+      button {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        padding: 2px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.82em;
+        transition: all 0.2s;
+
+        &:hover   { border-color: var(--accent); color: var(--accent-glow); }
+        &.copied  { border-color: var(--success); color: var(--success); }
+      }
+    }
+
+    code {
+      display: block;
+      background: var(--code-bg);
+      padding: 14px 16px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.87em;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 12px;
+    color: var(--text-muted);
+    margin: 0.6em 0;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.6em 0;
+    th, td { border: 1px solid var(--border); padding: 6px 12px; text-align: left; }
+    th     { background: var(--bg-card); color: var(--accent-glow); }
+  }
+}

@@ -1,0 +1,117 @@
+<div class="input-bar">
+
+  <!-- Attached file pill -->
+  @if (attachedFiles().length > 0) {
+    <div class="attached-pill">
+      <mat-icon>description</mat-icon>
+      <span>{{ attachedFiles()[0].name }}</span>
+      @if (uploading()) {
+        <span class="pill-status uploading">uploading…</span>
+      }
+      @if (!uploading()) {
+        <button class="pill-remove" (click)="removeAttachment()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Attached image pill -->
+  @if (attachedImageName()) {
+    <div class="attached-pill image-pill">
+      <mat-icon>image</mat-icon>
+      <span>{{ attachedImageName() }}</span>
+      <button class="pill-remove" (click)="removeImage()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+
+  <!-- Top toolbar: model mode chips -->
+  <div class="toolbar">
+    <div class="mode-chips">
+      <button class="chip" [class.active]="modelMode() === 'auto'"  (click)="setMode('auto')">
+        <mat-icon>auto_awesome</mat-icon> Auto
+      </button>
+      <button class="chip coder" [class.active]="modelMode() === 'coder'" (click)="setMode('coder')"
+              matTooltip="Force coder model">
+        <mat-icon>code</mat-icon> Coder
+      </button>
+      <button class="chip chat" [class.active]="modelMode() === 'chat'" (click)="setMode('chat')"
+              matTooltip="Force chat model">
+        <mat-icon>chat</mat-icon> Chat
+      </button>
+    </div>
+
+    @if (chat.streaming()) {
+      <span class="streaming-badge">
+        <span class="pulse"></span> Generating…
+      </span>
+    }
+
+    @if (text.length > 0) {
+      <span class="char-count" [class.warn]="charCount() > 3000">
+        {{ charCount() }}
+      </span>
+    }
+  </div>
+
+  <!-- Input row -->
+  <div class="input-row">
+    <!-- Hidden file input for documents -->
+    <input #fileInput
+           type="file"
+           style="display:none"
+           accept=".pdf,.txt,.md,.py,.js,.ts,.json,.csv,.log,.html,.css"
+           (change)="onFileSelected($event)" />
+
+    <!-- Hidden file input for images -->
+    <input #imageInput
+           type="file"
+           style="display:none"
+           accept="image/*"
+           (change)="onImageSelected($event)" />
+
+    <button class="attach-btn"
+            matTooltip="Attach document"
+            [disabled]="uploading()"
+            (click)="openFileDialog()">
+      @if (uploading()) {
+        <mat-icon class="spin">sync</mat-icon>
+      } @else {
+        <mat-icon>attach_file</mat-icon>
+      }
+    </button>
+
+    <button class="attach-btn"
+            matTooltip="Upload image for vision"
+            [disabled]="uploading()"
+            (click)="openImageDialog()">
+      <mat-icon>image</mat-icon>
+    </button>
+
+    <div class="textarea-wrap">
+      <textarea #textarea
+                [(ngModel)]="text"
+                (keydown)="handleKey($event)"
+                placeholder="Message Amethyst…  (Shift+Enter for new line)"
+                rows="1"
+                cdkTextareaAutosize
+                cdkAutosizeMinRows="1"
+                cdkAutosizeMaxRows="6"
+                [disabled]="chat.streaming()">
+      </textarea>
+    </div>
+
+    @if (chat.streaming()) {
+      <button class="action-btn stop" matTooltip="Stop generation" (click)="stopGeneration()">
+        <mat-icon>stop</mat-icon>
+      </button>
+    } @else {
+      <button class="action-btn send" matTooltip="Send (Enter)" [disabled]="!canSend()" (click)="send()">
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
+    }
+  </div>
+
+</div>
