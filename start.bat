@@ -30,7 +30,7 @@ timeout /t 4 /nobreak >nul
 ollama ps >nul 2>&1
 
 :: Start FastAPI backend
-echo  [+] Starting API server on http://localhost:8000
+echo  [+] Starting API server on http://localhost:8001
 start "Amethyst API" cmd /k "cd /d %~dp0 && python api_server.py"
 
 timeout /t 3 /nobreak >nul
@@ -46,7 +46,7 @@ start http://localhost:4200
 echo.
 echo  ┌──────────────────────────────────────────┐
 echo  │  Amethyst running on RTX 4060            │
-echo  │  API : http://localhost:8000             │
+echo  │  API : http://localhost:8001             │
 echo  │  UI  : http://localhost:4200             │
 echo  │  GPU : CUDA device 0 (NVIDIA RTX)        │
 echo  └──────────────────────────────────────────┘

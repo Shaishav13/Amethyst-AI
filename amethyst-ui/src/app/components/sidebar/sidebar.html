@@ -77,6 +77,38 @@
       }
     }
 
+    <!-- Google Open Knowledge Format (OKF) Wiki -->
+    <mat-divider />
+    <button class="section-toggle" (click)="knowledgeExpanded.set(!knowledgeExpanded())">
+      <span class="section-label cyan" style="margin:0">KNOWLEDGE (OKF WIKI)</span>
+      <mat-icon class="toggle-icon" [class.expanded]="knowledgeExpanded()">expand_more</mat-icon>
+    </button>
+
+    @if (knowledgeExpanded()) {
+      <div class="knowledge-panel">
+        <div class="kb-header">
+          <span class="kb-count">{{ knowledgeTopics().length }} topics indexed</span>
+          <button class="sync-kb-btn" (click)="syncKnowledge()" [disabled]="syncingKnowledge()" matTooltip="Compile Amethyst memory into Google OKF Markdown Wiki">
+            <mat-icon [class.spin]="syncingKnowledge()">sync</mat-icon>
+            Sync Wiki
+          </button>
+        </div>
+        <div class="session-list scrollable">
+          @for (topic of knowledgeTopics(); track topic.id) {
+            <div class="kb-item" [matTooltip]="topic.summary || topic.title">
+              <span class="kb-badge" [ngClass]="topic.type">{{ topic.type[0].toUpperCase() }}</span>
+              <div class="kb-info">
+                <span class="kb-title">{{ topic.title }}</span>
+                @if (topic.related.length > 0) {
+                  <span class="kb-meta">{{ topic.related.length }} links</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Memory -->
     @if (hasMemory()) {
       <mat-divider />

@@ -11,7 +11,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { ChatService } from '../../services/chat';
 import { AmethystApiService } from '../../services/amethyst-api';
 
-type ModelMode = 'auto' | 'coder' | 'chat';
+type ModelMode = 'auto' | 'coder' | 'chat' | 'image';
 
 @Component({
   selector: 'app-input-bar',
@@ -35,6 +35,7 @@ export class InputBarComponent {
   attachedImageName = signal<string | null>(null);
   attachedImageB64: string | null = null;
   uploading     = signal(false);
+  imageEngine   = signal<'flux' | 'sdxl'>('flux');
 
   constructor(
     public chat: ChatService,
@@ -56,6 +57,8 @@ export class InputBarComponent {
   charCount() { return this.text.length; }
 
   setMode(m: ModelMode) { this.modelMode.set(m); }
+
+  setImageEngine(e: 'flux' | 'sdxl') { this.imageEngine.set(e); }
 
   openFileDialog() {
     this.fileInput.nativeElement.click();
@@ -148,7 +151,7 @@ export class InputBarComponent {
     // Clear image state after sending
     this.removeImage();
     
-    this.chat.sendMessage(msg, mode === 'auto' ? undefined : mode, undefined, imageToSend || undefined);
+    this.chat.sendMessage(msg, mode === 'auto' ? undefined : mode, { image_engine: this.imageEngine() }, imageToSend || undefined);
   }
 
   handleKey(event: KeyboardEvent) {
@@ -156,6 +159,17 @@ export class InputBarComponent {
       event.preventDefault();
       this.send();
     }
+  }
+
+
+  quickOutfitSwap() {
+    this.text = 'edit-image ';
+    setTimeout(() => this.textarea?.nativeElement?.focus(), 50);
+  }
+
+  quickScenarioChange() {
+    this.text = 'edit-image background: ';
+    setTimeout(() => this.textarea?.nativeElement?.focus(), 50);
   }
 
   stopGeneration() {

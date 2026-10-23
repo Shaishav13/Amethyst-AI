@@ -16,14 +16,22 @@
     </div>
   }
 
-  <!-- Attached image pill -->
+  <!-- Attached image pill with quick edit actions -->
   @if (attachedImageName()) {
     <div class="attached-pill image-pill">
       <mat-icon>image</mat-icon>
-      <span>{{ attachedImageName() }}</span>
-      <button class="pill-remove" (click)="removeImage()">
+      <span class="img-name">{{ attachedImageName() }}</span>
+      <button class="pill-remove" (click)="removeImage()" matTooltip="Remove image">
         <mat-icon>close</mat-icon>
       </button>
+      <div class="img-quick-actions">
+        <button class="quick-btn outfit" (click)="quickOutfitSwap()" matTooltip="Keep face/body 100% untouched, swap clothing">
+          <mat-icon>checkroom</mat-icon> Swap Outfit
+        </button>
+        <button class="quick-btn scenario" (click)="quickScenarioChange()" matTooltip="Keep subject, swap scenario/background">
+          <mat-icon>landscape</mat-icon> Change Scenario
+        </button>
+      </div>
     </div>
   }
 
@@ -41,7 +49,25 @@
               matTooltip="Force chat model">
         <mat-icon>chat</mat-icon> Chat
       </button>
+      <button class="chip image" [class.active]="modelMode() === 'image'" (click)="setMode('image')"
+              matTooltip="Image generation & outfit editing with SDXL via ComfyUI">
+        <mat-icon>palette</mat-icon> Image
+      </button>
     </div>
+
+    <!-- Image Engine Toggle: Fast (SDXL) vs Perfectionist (FLUX) -->
+    @if (modelMode() === 'image' || attachedImageName()) {
+      <div class="engine-toggle-group">
+        <button type="button" class="toggle-pill" [class.active]="imageEngine() === 'sdxl'" (click)="setImageEngine('sdxl')"
+                matTooltip="⚡ Fast ~8s (RealVisXL SDXL) — Instant, crisp silhouette">
+          <mat-icon>bolt</mat-icon> Fast (SDXL)
+        </button>
+        <button type="button" class="toggle-pill flux" [class.active]="imageEngine() === 'flux'" (click)="setImageEngine('flux')"
+                matTooltip="✨ Perfectionist ~35s (FLUX.1-dev 12B DiT) — Photorealistic fabric & collar physics">
+          <mat-icon>auto_fix_high</mat-icon> Perfectionist (FLUX)
+        </button>
+      </div>
+    }
 
     @if (chat.streaming()) {
       <span class="streaming-badge">
@@ -94,7 +120,7 @@
       <textarea #textarea
                 [(ngModel)]="text"
                 (keydown)="handleKey($event)"
-                placeholder="Message Amethyst…  (Shift+Enter for new line)"
+                [placeholder]="modelMode() === 'image' ? (attachedImageName() ? 'edit-image <description> (e.g. edit-image luxury silk shirt)' : 'generate-image <prompt> (e.g. generate-image an apple on a table...)') : 'Message Amethyst… (Use generate-image or edit-image to create visuals)'"
                 rows="1"
                 cdkTextareaAutosize
                 cdkAutosizeMinRows="1"

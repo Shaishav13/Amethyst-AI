@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export const API_BASE = 'http://localhost:8000/api';
+export const API_BASE = 'http://localhost:8001/api';
 
 export interface ChatRequest {
   message: string;
   session_id?: string;
-  force_model?: 'coder' | 'chat';
-  options?: Record<string, number>;
+  force_model?: 'coder' | 'chat' | 'image';
+  image_engine?: 'flux' | 'sdxl';
+  options?: Record<string, any>;
+  image_b64?: string;
 }
 
 export interface Session {
@@ -48,6 +50,44 @@ export interface ModelStatus {
   chat_model: string;
   vision_model: string | null;
   models: Record<string, boolean>;
+  comfy_online?: boolean;
+}
+
+export interface ComfyStatus {
+  online: boolean;
+  devices?: any[];
+  checkpoints?: string[];
+  default_checkpoint?: string;
+  error?: string;
+}
+
+
+export interface OKFTopic {
+  id: string;
+  title: string;
+  type: string;
+  tags: string[];
+  summary: string;
+  related: string[];
+  inline_links: string[];
+  file_name: string;
+  content_preview: string;
+  updated: number;
+}
+
+export interface KnowledgeResponse {
+  topics: OKFTopic[];
+  count: number;
+}
+
+export interface ImageResult {
+  success: boolean;
+  prompt_id: string;
+  filename: string;
+  local_path: string;
+  url: string;
+  seed: number;
+  checkpoint: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -110,4 +150,57 @@ export class AmethystApiService {
   analyzeVision(prompt = '', imageB64?: string): Observable<any> {
     return this.http.post(`${API_BASE}/vision/analyze`, { prompt, image_b64: imageB64 });
   }
+
+  // ── ComfyUI Image Generation & Editing ──────────────────────────────────
+
+  getComfyStatus(): Observable<ComfyStatus> {
+    return this.http.get<ComfyStatus>(`${API_BASE}/image/status`);
+  }
+
+  generateImage(prompt: string, negativePrompt?: string, checkpoint?: string): Observable<ImageResult> {
+    return this.http.post<ImageResult>(`${API_BASE}/image/generate`, {
+      prompt,
+      negative_prompt: negativePrompt,
+      checkpoint,
+    });
+  }
+
+  editOutfit(file: File, prompt: string, negativePrompt?: string, checkpoint?: string): Observable<ImageResult> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('prompt', prompt);
+    if (negativePrompt) form.append('negative_prompt', negativePrompt);
+    if (checkpoint) form.append('checkpoint', checkpoint);
+    return this.http.post<ImageResult>(`${API_BASE}/image/edit/outfit`, form);
+  }
+
+  editScenario(file: File, prompt: string, negativePrompt?: string, checkpoint?: string): Observable<ImageResult> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('prompt', prompt);
+    if (negativePrompt) form.append('negative_prompt', negativePrompt);
+    if (checkpoint) form.append('checkpoint', checkpoint);
+    return this.http.post<ImageResult>(`${API_BASE}/image/edit/scenario`, form);
+  }
+
+  // ── Google Open Knowledge Format (OKF) ──────────────────────────────────
+
+  getKnowledgeTopics(): Observable<KnowledgeResponse> {
+    return this.http.get<KnowledgeResponse>(`${API_BASE}/knowledge/topics`);
+  }
+
+  getKnowledgeTopic(id: string): Observable<OKFTopic & { content: string; connected_nodes: OKFTopic[] }> {
+    return this.http.get<OKFTopic & { content: string; connected_nodes: OKFTopic[] }>(`${API_BASE}/knowledge/topic/${id}`);
+  }
+
+  compileKnowledge(): Observable<{ success: boolean; compiled_count: number; total_nodes: number }> {
+    return this.http.post<{ success: boolean; compiled_count: number; total_nodes: number }>(`${API_BASE}/knowledge/compile`, {});
+  }
+
+  uploadKnowledgeFile(file: File): Observable<any> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post(`${API_BASE}/knowledge/upload`, form);
+  }
+
 }

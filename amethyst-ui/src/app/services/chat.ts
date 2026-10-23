@@ -72,8 +72,8 @@ export class ChatService {
   // ── Messaging ──────────────────────────────────────────────────────────
   sendMessage(
     text: string,
-    forceModel?: 'coder' | 'chat',
-    options?: Record<string, number>,
+    forceModel?: 'coder' | 'chat' | 'image',
+    options?: Record<string, any>,
     imageB64?: string
   ): void {
     const sessionId = this.activeId();
@@ -113,8 +113,8 @@ export class ChatService {
     text: string,
     sessionId: string,
     assistantMsgId: string,
-    forceModel?: 'coder' | 'chat',
-    options?: Record<string, number>,
+    forceModel?: 'coder' | 'chat' | 'image',
+    options?: Record<string, any>,
     imageB64?: string
   ) {
     // Abort any in-flight stream

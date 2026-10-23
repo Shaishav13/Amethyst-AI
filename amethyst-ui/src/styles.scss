@@ -108,6 +108,29 @@ html, body {
   line-height: 1.7;
   word-break: break-word;
 
+  // ── Image constraints: clean, bounded display ─────────────────────────────
+  img {
+    max-width: min(100%, 460px) !important;
+    max-height: 440px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 12px !important;
+    margin: 10px 0 !important;
+    display: block !important;
+    border: 1px solid rgba(179, 136, 255, 0.3) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    cursor: zoom-in !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+
+    &:hover {
+      transform: scale(1.015) !important;
+      border-color: rgba(179, 136, 255, 0.75) !important;
+      box-shadow: 0 12px 32px rgba(179, 136, 255, 0.25) !important;
+    }
+  }
+
+
   p   { margin: 0.5em 0; }
   ul, ol { padding-left: 1.4em; margin: 0.4em 0; }
   li  { margin: 0.2em 0; }

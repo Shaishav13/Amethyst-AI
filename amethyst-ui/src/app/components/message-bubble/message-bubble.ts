@@ -184,7 +184,14 @@ export class MessageBubbleComponent implements OnChanges {
   }
 
   onBodyClick(event: MouseEvent) {
-    const btn = (event.target as HTMLElement).closest('.copy-btn') as HTMLButtonElement | null;
+    const target = event.target as HTMLElement;
+    const img = target.closest('img') as HTMLImageElement | null;
+    if (img && img.src) {
+      window.open(img.src, '_blank');
+      return;
+    }
+
+    const btn = target.closest('.copy-btn') as HTMLButtonElement | null;
     if (!btn) return;
     const code = decodeURIComponent(btn.dataset['code'] ?? '');
     navigator.clipboard.writeText(code).then(() => {

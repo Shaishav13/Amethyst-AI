@@ -226,3 +226,80 @@
     }
   }
 }
+
+
+  .section-label.cyan { color: var(--cyan); }
+
+  .knowledge-panel {
+    padding: 4px 10px 8px;
+
+    .kb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 0 4px;
+
+      .kb-count { font-size: 0.72em; color: var(--text-dim); }
+
+      .sync-kb-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        background: rgba(0, 245, 212, 0.1);
+        border: 1px solid rgba(0, 245, 212, 0.25);
+        border-radius: 12px;
+        color: var(--cyan);
+        font-size: 0.7em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        mat-icon { font-size: 12px; height: 12px; width: 12px; }
+        &:hover:not([disabled]) {
+          background: rgba(0, 245, 212, 0.2);
+          box-shadow: 0 0 8px rgba(0, 245, 212, 0.3);
+        }
+        &[disabled] { opacity: 0.5; cursor: default; }
+      }
+    }
+
+    .kb-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 6px;
+      border-radius: 6px;
+      font-size: 0.78em;
+      color: var(--text-muted);
+      cursor: default;
+      transition: background 0.15s;
+
+      &:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+      .kb-badge {
+        flex-shrink: 0;
+        font-size: 0.7em;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 4px;
+        &.profile { color: var(--accent); background: rgba(157, 78, 221, 0.15); }
+        &.session { color: var(--yellow); background: rgba(254, 228, 64, 0.12); }
+        &.project { color: var(--cyan); background: rgba(0, 245, 212, 0.12); }
+        &.concept { color: #80d8ff; background: rgba(128, 216, 255, 0.12); }
+      }
+
+      .kb-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .kb-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .kb-meta { font-size: 0.72em; color: var(--text-dim); margin-left: 4px; }
+    }
+  }
+
+  .spin { animation: spin 1s linear infinite; }

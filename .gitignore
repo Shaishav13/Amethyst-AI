@@ -1,58 +1,137 @@
-# Python
+# ==============================================================================
+# Python Build, Cache & Test Artifacts
+# ==============================================================================
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 *.pyd
 *.pdb
 *.egg-info/
-dist/
-build/
 *.egg
+build/
+dist/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Virtual environments & Dependencies
+# ==============================================================================
+# Virtual Environments & Dependencies
+# ==============================================================================
 venv/
 .venv/
 env/
 .env/
+ENV/
 node_modules/
+package-lock.json.bak
 
-# Amethyst runtime data (personal data, large files, generated content)
-# These live in ~/.amethyst/ and should never be committed
+# ==============================================================================
+# Angular & Frontend Build Artifacts
+# ==============================================================================
+amethyst-ui/.angular/
+amethyst-ui/dist/
+amethyst-ui/tmp/
+amethyst-ui/out-tsc/
+amethyst-ui/bazel-out/
+.sass-cache/
+connect.lock
+coverage/
+
+# ==============================================================================
+# Images & Media Files
+# ==============================================================================
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.ico
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wav
+*.mp3
+
+# Retain essential web client icons
+!amethyst-ui/public/favicon.ico
+!amethyst-ui/src/favicon.ico
+!amethyst-ui/src/assets/**
+
+# ==============================================================================
+# Amethyst Runtime, Memory & Data Directories
+# ==============================================================================
+.amethyst/
 *.amethyst/
 chroma_db/
 sessions/
 memories/
 screenshots/
 sandbox/
+generated_images/
+output/
+outputs/
 profile.json
 *.draft
+update_logs/
+ollama_models/
+models/
 
-# Environment / secrets
+# ==============================================================================
+# Scratch, Test Data & Temporary Files
+# ==============================================================================
+scratch/
+test/
+*.bak
+*.bak.*
+*.phase*_bak
+*~
+*.tmp
+*.temp
+tmp/
+temp/
+
+# ==============================================================================
+# Databases & Logs
+# ==============================================================================
+*.sqlite
+*.sqlite3
+*.db
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==============================================================================
+# Environment, Credentials & Local Configs
+# ==============================================================================
 .env
 *.env
+.env.local
+.env.*.local
 secrets.json
 config.local.*
 
-# IDE / editor
+# ==============================================================================
+# IDEs & OS Metadata
+# ==============================================================================
 .vscode/
 .idea/
 *.suo
 *.user
 *.sublime-project
 *.sublime-workspace
-
-# OS
 Thumbs.db
 Desktop.ini
 .DS_Store
 ehthumbs.db
-
-# Logs
-*.log
-logs/
-
-# Temporary files
-*.tmp
-*.temp
-tmp/
-temp/

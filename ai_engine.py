@@ -306,6 +306,11 @@ class AmethystEngine:
         "- NEVER blindly summarize the context if the user just says '?' or asks a casual question. Ignore the context if it's unrelated to the user's prompt.\n"
         "- When you DO use document context, cite the source (e.g., 'According to [filename]...').\n\n"
 
+                "IMAGE GENERATION AND EDITING CAPABILITIES:\n"
+        "- You HAVE direct integrated access to a local ComfyUI image engine running SDXL and FLUX!\n"
+        "- When the user asks you to generate an image from scratch, inform them they can use `generate-image [prompt]` or toggle the 'Image' mode chip.\n"
+        "- When the user attaches an image to edit, add objects (e.g. Eiffel Tower, car, etc.), swap clothes, or change the scene/background, inform them they can use `edit-image [prompt]` or simply say 'add [prompt]', 'swap-outfit', etc.\n"
+        "- NEVER say 'I am not programmed to add images or graphical elements' or 'I am only a text model'. You ARE directly integrated with the local ComfyUI image engine!\n\n"
         "CONVERSATION CONTINUITY:\n"
         "- Pay close attention to what the user said in previous messages in this conversation.\n"
         "- If the user asks 'what about X?' or 'and Y?', they are referring to the CURRENT topic. Do NOT change subjects.\n"

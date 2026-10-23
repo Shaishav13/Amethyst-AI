@@ -35,6 +35,12 @@ import { AmethystApiService, ModelStatus } from '../../services/amethyst-api';
             <span class="dot" [class.online]="status()!.online"></span>
             {{ shortName(status()!.chat_model) }}
           </span>
+          <span class="badge comfy" [class.offline-comfy]="!status()?.comfy_online"
+                [matTooltip]="status()?.comfy_online ? 'ComfyUI Engine Online (SDXL / Outfits / Scenarios)' : 'ComfyUI Offline (Start ComfyUI on port 8188 for image generation)'">
+            <span class="dot" [class.online]="status()?.comfy_online"></span>
+            <mat-icon style="font-size:13px;height:13px;width:13px;margin-right:2px">palette</mat-icon>
+            ComfyUI
+          </span>
         } @else {
           <span class="badge offline">
             <mat-icon style="font-size:14px;height:14px;width:14px">warning</mat-icon>

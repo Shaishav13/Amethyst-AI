@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { ChatService, ChatSession } from '../../services/chat';
-import { AmethystApiService, Session } from '../../services/amethyst-api';
+import { AmethystApiService, Session, OKFTopic } from '../../services/amethyst-api';
 import { SystemStatsComponent } from '../system-stats/system-stats';
 
 @Component({
@@ -25,12 +25,16 @@ export class SidebarComponent implements OnInit {
   profile         = signal<any>(null);
   memoryExpanded  = signal(false);
   historyExpanded = signal(true);
+  knowledgeTopics  = signal<OKFTopic[]>([]);
+  knowledgeExpanded = signal(false);
+  syncingKnowledge = signal(false);
 
   constructor(public chat: ChatService, private api: AmethystApiService) {}
 
   ngOnInit() {
     this.loadSessions();
     this.loadProfile();
+    this.loadKnowledge();
   }
 
   loadSessions() {
@@ -84,6 +88,25 @@ export class SidebarComponent implements OnInit {
     return d.toDateString() === now.toDateString()
       ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+
+
+  loadKnowledge() {
+    this.api.getKnowledgeTopics().subscribe({
+      next: res => this.knowledgeTopics.set(res.topics || []),
+      error: () => {}
+    });
+  }
+
+  syncKnowledge() {
+    this.syncingKnowledge.set(true);
+    this.api.compileKnowledge().subscribe({
+      next: () => {
+        this.syncingKnowledge.set(false);
+        this.loadKnowledge();
+      },
+      error: () => this.syncingKnowledge.set(false)
+    });
   }
 
   hasMemory() {
